@@ -127,4 +127,19 @@ final class RenderTest extends TestCase
         self::assertStringContainsString('connections-edge--same-as', $html);
         self::assertStringContainsString('(reviewed: same person)', $html);
     }
+
+    public function testNodesShowTheirKindYearsAndRoles(): void
+    {
+        $graph = new ConnectionGraph(new Scope('d'), 'p', [
+            new Node('p', 'Person', 'John Bray Hutt', '1920-03-01', '1990', roles: ['Named on stone', 'Spouse']),
+            new Node('s', 'Document', 'Hutt Gravestone', kind: 'Stone record'),
+        ], [new Edge('e', 'Reference', 'p', 's', 'named on')]);
+        $html = $this->twig()->createTemplate('{{ connections(graph) }}')->render(['graph' => $graph]);
+
+        self::assertStringContainsString('1920–1990 · Named on stone, Spouse', $html);
+        self::assertStringContainsString('>STONE RECORD<', $html);
+        self::assertStringContainsString('>PERSON<', $html);
+        self::assertStringContainsString('John Bray Hutt (1920–1990)', $html, 'The list view shows the years too.');
+        self::assertStringContainsString('aria-label="Open Person: John Bray Hutt, 1920–1990 · Named on stone, Spouse"', $html);
+    }
 }

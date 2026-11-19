@@ -7,6 +7,7 @@
     .connections-node.is-focus { fill: #e6f0ea; stroke: #3d6b55; stroke-width: 3; }
     .connections-text { fill: #1c2b24; font: 13px system-ui, sans-serif; }
     .connections-kind { fill: #1c2b24; opacity: .7; font: 10px system-ui, sans-serif; }
+    .connections-facts { fill: #1c2b24; opacity: .85; font: 11px system-ui, sans-serif; }
     .connections-edge { fill: none; stroke: #7a9a8a; stroke-width: 1.5; }
     .connections-edge--same-as { stroke-dasharray: 6 4; }
     .connections-edge--reviewed { stroke: #3d6b55; stroke-width: 2.5; }
@@ -14,7 +15,7 @@
     @media (prefers-color-scheme: dark) {
         .connections-node { fill: #1d2a24; stroke: #86a898; }
         .connections-node.is-focus { fill: #24382f; stroke: #9cc7b2; }
-        .connections-text, .connections-kind { fill: #e8f0ec; }
+        .connections-text, .connections-kind, .connections-facts { fill: #e8f0ec; }
         .connections-edge { stroke: #86a898; }
     }
 </style>
@@ -33,10 +34,13 @@
             {% endfor %}
             {% for item in placed.nodes %}
                 {% set url = connections_node_url(item.node, graph) %}
-                {% if url %}<a href="{{ url }}" aria-label="Open {{ item.node.schema }}: {{ item.node.caption }}">{% else %}<g>{% endif %}
+                {% set facts = [item.node.lifeYears, item.node.roles|join(', ')]|filter(v => v != '')|join(' · ') %}
+                {% if url %}<a href="{{ url }}" aria-label="Open {{ item.node.kind ?? item.node.schema }}: {{ item.node.caption }}{{ facts ? ', ' ~ facts : '' }}">{% else %}<g>{% endif %}
+                    <title>{{ item.node.caption }}{{ facts ? ' · ' ~ facts : '' }}</title>
                     <rect class="connections-node{{ item.focus ? ' is-focus' : '' }}" x="{{ item.x }}" y="{{ item.y }}" width="{{ item.width }}" height="{{ item.height }}" rx="9"/>
-                    <text class="connections-kind" x="{{ item.x + 12 }}" y="{{ item.y + 22 }}">{{ item.node.schema|upper }}</text>
-                    <text class="connections-text" x="{{ item.x + 12 }}" y="{{ item.y + 44 }}">{{ item.node.caption|length > 31 ? item.node.caption|slice(0, 28) ~ '…' : item.node.caption }}</text>
+                    <text class="connections-kind" x="{{ item.x + 12 }}" y="{{ item.y + 20 }}">{{ (item.node.kind ?? item.node.schema)|upper }}</text>
+                    <text class="connections-text" x="{{ item.x + 12 }}" y="{{ item.y + 42 }}">{{ item.node.caption|length > 31 ? item.node.caption|slice(0, 28) ~ '…' : item.node.caption }}</text>
+                    {% if facts %}<text class="connections-facts" x="{{ item.x + 12 }}" y="{{ item.y + 62 }}">{{ facts|length > 42 ? facts|slice(0, 39) ~ '…' : facts }}</text>{% endif %}
                 {% if url %}</a>{% else %}</g>{% endif %}
             {% endfor %}
         </svg>
@@ -46,7 +50,8 @@
         <ul>
             {% for edge in graph.edges %}
                 <li>
-                    {{ graph.node(edge.from).caption }} <em>{{ edge.label }}</em> {{ graph.node(edge.to).caption }}
+                    {% set from = graph.node(edge.from) %}{% set to = graph.node(edge.to) %}
+                    {{ from.caption }}{% if from.lifeYears %} ({{ from.lifeYears }}){% endif %} <em>{{ edge.label }}</em> {{ to.caption }}{% if to.lifeYears %} ({{ to.lifeYears }}){% endif %}
                     {% if edge.kind.value == 'same-as' %}(reviewed: same person){% elseif edge.status == 'extracted' %}(extracted, not reviewed){% endif %}
                     {% for evidence in edge.evidence %}
                         <blockquote class="connections-quote">{{ evidence.exact }}</blockquote>

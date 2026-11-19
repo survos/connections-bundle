@@ -3,7 +3,8 @@
 Draws a `Survos\ConnectionsContract\ConnectionGraph` as:
 
 - an SVG (focus first, direct connections in the next column, anything further after that), with a title and a
-  description for screen readers, readable without JavaScript;
+  description for screen readers, readable without JavaScript. Each node shows its kind (or schema), its name, and the
+  years and roles when it has them;
 - the same connections as a list under a `details` element, each with its source quote and a source link;
 - a "More connections" link for each relation group that has more than was loaded.
 

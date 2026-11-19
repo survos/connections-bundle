@@ -15,7 +15,7 @@ use Survos\ConnectionsContract\Edge;
 final class GraphLayout
 {
     public const int NODE_WIDTH = 270;
-    public const int NODE_HEIGHT = 64;
+    public const int NODE_HEIGHT = 78;
     public const int COLUMN_GAP = 90;
     public const int ROW_GAP = 16;
     private const int MAX_DEPTH = 2;
