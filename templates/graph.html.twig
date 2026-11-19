@@ -1,0 +1,66 @@
+{# A ConnectionGraph as an SVG plus the same connections as a list. Inputs: graph, placed. #}
+{% set dom = connections_dom_id(graph) %}
+{% set focus = graph.node(graph.focus) %}
+<style>
+    .connections-scroll { overflow-x: auto; }
+    .connections-node { fill: #fff; stroke: #7a9a8a; stroke-width: 1.5; }
+    .connections-node.is-focus { fill: #e6f0ea; stroke: #3d6b55; stroke-width: 3; }
+    .connections-text { fill: #1c2b24; font: 13px system-ui, sans-serif; }
+    .connections-kind { fill: #1c2b24; opacity: .7; font: 10px system-ui, sans-serif; }
+    .connections-edge { fill: none; stroke: #7a9a8a; stroke-width: 1.5; }
+    .connections-edge--same-as { stroke-dasharray: 6 4; }
+    .connections-edge--reviewed { stroke: #3d6b55; stroke-width: 2.5; }
+    .connections-quote { margin: .25rem 0 .75rem 1rem; padding-left: .75rem; border-left: 3px solid #7a9a8a; }
+    @media (prefers-color-scheme: dark) {
+        .connections-node { fill: #1d2a24; stroke: #86a898; }
+        .connections-node.is-focus { fill: #24382f; stroke: #9cc7b2; }
+        .connections-text, .connections-kind { fill: #e8f0ec; }
+        .connections-edge { stroke: #86a898; }
+    }
+</style>
+<section class="connections" aria-labelledby="{{ dom }}-heading">
+    <h2 id="{{ dom }}-heading">Connections for {{ focus.caption }}</h2>
+    <div class="connections-scroll" tabindex="0" aria-label="Scrollable connections graph">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {{ placed.width }} {{ placed.height }}" style="width:100%;min-width:{{ placed.width }}px" role="img" aria-labelledby="{{ dom }}-title {{ dom }}-desc">
+            <title id="{{ dom }}-title">Connections for {{ focus.caption }}</title>
+            <desc id="{{ dom }}-desc">{{ graph.nodes|length }} records and {{ graph.edges|length }} connections. The same connections are listed below the graph.</desc>
+            <defs>
+                <marker id="{{ dom }}-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#7a9a8a"/></marker>
+            </defs>
+            {% for item in placed.edges %}
+                {% set edge = item.edge %}
+                <path class="connections-edge{{ edge.kind.value == 'same-as' ? ' connections-edge--same-as' : '' }}{{ edge.status == 'reviewed' ? ' connections-edge--reviewed' : '' }}" d="{{ item.path }}" marker-end="url(#{{ dom }}-arrow)"><title>{{ graph.node(edge.from).caption }}: {{ edge.label }}: {{ graph.node(edge.to).caption }}</title></path>
+            {% endfor %}
+            {% for item in placed.nodes %}
+                {% set url = connections_node_url(item.node, graph) %}
+                {% if url %}<a href="{{ url }}" aria-label="Open {{ item.node.schema }}: {{ item.node.caption }}">{% else %}<g>{% endif %}
+                    <rect class="connections-node{{ item.focus ? ' is-focus' : '' }}" x="{{ item.x }}" y="{{ item.y }}" width="{{ item.width }}" height="{{ item.height }}" rx="9"/>
+                    <text class="connections-kind" x="{{ item.x + 12 }}" y="{{ item.y + 22 }}">{{ item.node.schema|upper }}</text>
+                    <text class="connections-text" x="{{ item.x + 12 }}" y="{{ item.y + 44 }}">{{ item.node.caption|length > 31 ? item.node.caption|slice(0, 28) ~ '…' : item.node.caption }}</text>
+                {% if url %}</a>{% else %}</g>{% endif %}
+            {% endfor %}
+        </svg>
+    </div>
+    <details class="mt-3">
+        <summary>Read connections as a list ({{ graph.edges|length }})</summary>
+        <ul>
+            {% for edge in graph.edges %}
+                <li>
+                    {{ graph.node(edge.from).caption }} <em>{{ edge.label }}</em> {{ graph.node(edge.to).caption }}
+                    {% if edge.kind.value == 'same-as' %}(reviewed: same person){% elseif edge.status == 'extracted' %}(extracted, not reviewed){% endif %}
+                    {% for evidence in edge.evidence %}
+                        <blockquote class="connections-quote">{{ evidence.exact }}</blockquote>
+                    {% endfor %}
+                    {% set source = connections_source_url(edge, graph) %}
+                    {% if source %}<a href="{{ source }}">Source</a>{% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+    </details>
+    {% for group in graph.groups %}
+        {% if group.hasMore %}
+            {% set more = connections_more_url(graph, group) %}
+            <p>Showing {{ group.offset + group.limit }} of {{ group.total }} {{ group.key }} connections.{% if more %} <a href="{{ more }}">More connections</a>{% endif %}</p>
+        {% endif %}
+    {% endfor %}
+</section>

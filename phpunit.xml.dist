@@ -1,0 +1,1 @@
+<phpunit bootstrap="tests/bootstrap.php" colors="true" failOnWarning="true"><testsuites><testsuite name="connections"><directory>tests</directory></testsuite></testsuites></phpunit>

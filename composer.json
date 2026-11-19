@@ -1,0 +1,29 @@
+{
+    "name": "survos/connections-bundle",
+    "description": "Renders a connections graph (survos/connections-contract) as an accessible SVG with a text list and source quotes.",
+    "type": "symfony-bundle",
+    "license": "MIT",
+    "require": {
+        "php": "^8.5",
+        "survos/connections-contract": "^2.45",
+        "survos/kit-bundle": "^2.28",
+        "symfony/framework-bundle": "^8.1",
+        "symfony/twig-bundle": "^8.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "Survos\\ConnectionsBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Survos\\ConnectionsBundle\\Tests\\": "tests/"
+        }
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^13.0"
+    },
+    "scripts": {
+        "test": "phpunit"
+    }
+}
